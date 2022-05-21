@@ -1,5 +1,5 @@
 # moe-betta
-A simple yet aggressive SC2 bot that will soon be attempting to climb the AI ladder and will be playable in realtime.
+A simple yet aggressive SC2 AI that will soon be attempting to climb the AI ladder and will be playable in realtime for practicing agaisnt optimal aggressive proxy pushes.
 The current strat is a 3x proxy Barracks 12 Marine push followed up by Marine + Thor All-in.
 This is still in early form and will be updated heavily moving forward.
 
@@ -9,7 +9,9 @@ Current goals:
 2) Create a filter to target workers closest to proxy location and set those workers to build the proxy barracks. 
 3) Change proxy location to a slice that I can index into to randomize proxy locations.
 4) Implement a better Marine micro model that can handle game-deciding actions reliably.(lol)
-5) Convert to a Real Time bot that is playable locally.
+5) Implement building a bunker during inital Marine push.
+6) Implement Marine AI to utilize bunker.
+7) Convert to a Real Time bot that is playable locally.
 
 
 How to complile and view current bot (Currently only on Windows):
