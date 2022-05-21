@@ -14,7 +14,7 @@ Current goals:
 7) Convert to a Real Time AI that is playable locally.
 
 
-How to complile and view current bot (Currently only on Windows):
+How to complile and review current implementation (only on Windows):
 1) Install Starcraft 2:
             https://starcraft2.com/en-us/
 2) Install Rust:
