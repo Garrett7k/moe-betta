@@ -18,8 +18,9 @@ How to complile and view current bot (Currently only on Windows):
             https://www.rust-lang.org/tools/install
 3) On windows, install the C++ build tools:
             https://visualstudio.microsoft.com/visual-cpp-build-tools/
-4) Download provided 2021Season2Ladder.zip Map files and extract into C:\users\\*username*\program files (x86)\Starcraft II\Maps
-5) git clone repo:
+4) Download 2021Season2Ladder.zip Map files and extract into C:\users\\*username*\program files (x86)\Starcraft II\Maps
+            https://wiki.sc2ai.net/Ladder_Maps
+6) git clone repo:
             https://github.com/Garrett7k/moe-betta.git
 6) CD moe-betta
 7) cargo run
