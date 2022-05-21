@@ -1,6 +1,6 @@
 # moe-betta
 A simple yet aggressive SC2 bot that will soon be attempting to climb the AI ladder and will be playable in realtime.
-The current strat is a cheesy early Marine push followed up by Thors.
+The current strat is a proxy 3x Barracks followed by Marine push followed up by Thors.
 This is still in early form and will be updated heavily moving forward.
 
 
