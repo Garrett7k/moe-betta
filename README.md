@@ -7,11 +7,11 @@ This is still in early form and will be updated heavily moving forward.
 Current goals:
 1) Create a function that gets called inside on_start() that sends 2 workers to proxy location. 
 2) Create a filter to target workers closest to proxy location and set those workers to build the proxy barracks. 
-3) Change proxy location to a slice that I can index into to randomize proxy locations.
-4) Implement a better Marine micro model that can handle game-deciding actions reliably.(lol)
+3) Implement mutliple proxy locations using an array to enable random indexing to find a random proxy location each game.
+4) Implement a better Marine/Thor micro model that can handle game-deciding actions reliably.(lol.)
 5) Implement building a bunker during inital Marine push.
 6) Implement Marine AI to utilize bunker.
-7) Convert to a Real Time bot that is playable locally.
+7) Convert to a Real Time AI that is playable locally.
 
 
 How to complile and view current bot (Currently only on Windows):
