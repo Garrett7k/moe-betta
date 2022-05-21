@@ -35,9 +35,7 @@ impl Player for MarineThorRushAI {
         self.distribute_workers();
         self.build();
         self.train();
-        if self.counter().count(UnitTypeId::Marine) >= 7 || self.time > 300.0 {
-            self.execute_marine_micro();
-        }
+        self.execute_marine_micro();
         self.execute_thor_micro();
         Ok(())
     }
@@ -402,6 +400,9 @@ impl MarineThorRushAI {
     }
 
     fn execute_marine_micro(&mut self) {
+		if !self.counter().count(UnitTypeId::Marine) >= 13 {
+			return;
+		}
         let proxy = self
             .start_location
             .towards(self.game_info.map_center, 100.0);
@@ -433,7 +434,7 @@ impl MarineThorRushAI {
         for u in &marine {
             let is_retreating = self.marine_retreat.contains(&u.tag());
             if is_retreating {
-                if u.health_percentage().unwrap() > 0.2 {
+                if u.health_percentage().unwrap() > 0.11 {
                     self.marine_retreat.remove(&u.tag());
                 }
             } else if u.health_percentage().unwrap() < 0.1 {
@@ -482,11 +483,10 @@ impl MarineThorRushAI {
                         }
                     } else {
                         // TODO:: FIX WEIRD ENEMY SPAWN RUSH
-						if self.counter().count(UnitTypeId::Marine) >= 7 {
-							match targets.iter().in_range_of(u, 0.0).min_by_key(|t| t.hits()) {
-								Some(target) => u.attack(Target::Tag(target.tag()), false),
-								None => u.move_to(Target::Pos(closest.position()), false),
-							}
+						//let current_marine_count = 
+						match targets.iter().in_range_of(u, 0.0).min_by_key(|t| t.hits()) {
+							Some(target) => u.attack(Target::Tag(target.tag()), false),
+							None => u.move_to(Target::Pos(closest.position()), false),
 						}
                     }
                 }
