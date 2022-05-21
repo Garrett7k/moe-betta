@@ -16,7 +16,7 @@ How to complile and view current bot (Currently only on Windows):
             https://starcraft2.com/en-us/
 2) Install Rust:
             https://www.rust-lang.org/tools/install
-3) On windows, install the C++ build tools:
+3) Install the C++ build tools:
             https://visualstudio.microsoft.com/visual-cpp-build-tools/
 4) Download 2021Season2Ladder.zip Map files and extract into C:\users\\*username*\program files (x86)\Starcraft II\Maps
             https://wiki.sc2ai.net/Ladder_Maps
