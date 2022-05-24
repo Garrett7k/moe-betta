@@ -12,6 +12,9 @@ struct MarineThorRushAI {
 
 impl Player for MarineThorRushAI {
     fn on_start(&mut self) -> SC2Result<()> {
+		let proxy = self
+            .start_location
+            .towards(self.game_info.map_center, 100.0);
         if let Some(townhall) = self.units.my.townhalls.first() {
             // Setting rallypoint for command center
             townhall.smart(Target::Pos(self.start_center), false);
@@ -27,6 +30,10 @@ impl Player for MarineThorRushAI {
                 u.gather(mineral.tag(), false);
             }
         }
+		for i in self.units.my.workers.iter().take(2) {
+			i.move_to(Target::Pos(proxy), false);
+		}
+		
         Ok(())
     }
 
@@ -49,6 +56,9 @@ impl MarineThorRushAI {
     const DISTRIBUTION_DELAY: u32 = 8;
 
     fn distribute_workers(&mut self) {
+		let proxy = self
+            .start_location
+            .towards(self.game_info.map_center, 100.0);
         if self.units.my.workers.is_empty() {
             return;
         }
@@ -153,6 +163,7 @@ impl MarineThorRushAI {
             );
 
         // Distributing idle workers
+		
         let minerals_near_base =
             if idle_workers.len() > deficit_minings.len() + deficit_geysers.len() {
                 let minerals =
@@ -188,6 +199,7 @@ impl MarineThorRushAI {
                 }
             }
         }
+		
     }
 
     fn get_builder(&self, pos: Point2, mineral_tags: &[u64]) -> Option<&Unit> {
@@ -400,9 +412,6 @@ impl MarineThorRushAI {
     }
 
     fn execute_marine_micro(&mut self) {
-		if !self.counter().count(UnitTypeId::Marine) >= 13 {
-			return;
-		}
         let proxy = self
             .start_location
             .towards(self.game_info.map_center, 100.0);
@@ -434,16 +443,17 @@ impl MarineThorRushAI {
         for u in &marine {
             let is_retreating = self.marine_retreat.contains(&u.tag());
             if is_retreating {
-                if u.health_percentage().unwrap() > 0.11 {
+                if u.health_percentage().unwrap() >= 0.11 {
                     self.marine_retreat.remove(&u.tag());
                 }
-            } else if u.health_percentage().unwrap() < 0.1 {
+            } else if u.health_percentage().unwrap() <= 0.1 {
                 self.marine_retreat.insert(u.tag());
             }
 
             match targets.closest(u) {
                 Some(closest) => {
                     if is_retreating {
+						//WILL EXECUTE ON ALL MARINES WITH < 0.1 HEALTH
                         match targets
                             .iter()
                             .filter(|t| {
@@ -482,11 +492,15 @@ impl MarineThorRushAI {
                             }
                         }
                     } else {
+						//WILL EXECUTE ON ALL MARINES WITH > 0.11 HEALTH
                         // TODO:: FIX WEIRD ENEMY SPAWN RUSH
-						//let current_marine_count = 
-						match targets.iter().in_range_of(u, 0.0).min_by_key(|t| t.hits()) {
-							Some(target) => u.attack(Target::Tag(target.tag()), false),
-							None => u.move_to(Target::Pos(closest.position()), false),
+						if self.counter().count(UnitTypeId::Marine) >= 13 {
+							match targets.iter().in_range_of(u, 0.0).min_by_key(|t| t.hits()) {
+								Some(target) => u.attack(Target::Tag(target.tag()), false),
+								None => u.move_to(Target::Pos(closest.position()), false),
+							}
+						} else {
+							u.move_to(Target::Pos(proxy), false);	
 						}
                     }
                 }
@@ -496,7 +510,9 @@ impl MarineThorRushAI {
                     } else {
                         self.enemy_start
                     };
-                    u.move_to(Target::Pos(pos), false);
+					if self.counter().count(UnitTypeId::Marine) >= 13 {
+						u.move_to(Target::Pos(pos), false);
+					}
                 }
             }
         }
