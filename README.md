@@ -5,8 +5,8 @@ This is still in early form and will be updated heavily moving forward.
 
 
 Current goals:
-1) Create a function that gets called inside on_start() that sends 2 workers to proxy location. 
-2) Create a filter to target workers closest to proxy location and set those workers to build the proxy barracks. 
+1) Create a function that gets called inside on_start() that sends 2 workers to proxy location. (x)
+2) Create a filter to target workers closest to proxy location and set those workers to build the proxy barracks. (Distribute workers function makes this tricky...)
 3) Implement mutliple proxy locations using an array to enable random indexing to find a random proxy location each game.
 4) Implement a better Marine/Thor micro model that can handle game-deciding actions reliably.(lol.)
 5) Implement building a bunker during inital Marine push.
