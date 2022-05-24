@@ -15,6 +15,7 @@ Current goals:
 
 
 How to complile and review current implementation (only on Windows):
+
 1) Install Starcraft 2:
             https://starcraft2.com/en-us/
 2) Install Rust:
@@ -23,8 +24,10 @@ How to complile and review current implementation (only on Windows):
             https://visualstudio.microsoft.com/visual-cpp-build-tools/
 4) Download 2021Season2Ladder.zip Map files and extract into C:\users\\*username*\program files (x86)\Starcraft II\Maps
             https://wiki.sc2ai.net/Ladder_Maps
+5) Install Git for Windows: 
+            https://git-scm.com/download/win
 6) Clone repo:
             git clone https://github.com/Garrett7k/moe-betta.git
-6) CD moe-betta
-7) Cargo run
+7) CD moe-betta
+8) Cargo run
 
