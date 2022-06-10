@@ -1,6 +1,6 @@
 # moe-betta
 A simple yet aggressive SC2 AI that will soon be attempting to climb the AI ladder and will be playable in realtime for practicing agaisnt optimal aggressive proxy pushes.
-The current strat is a 3x proxy Barracks 12 Marine push followed up by Marine + Thor All-in.
+The current strat is a proxy Barracks  Marine push followed up by Marine + Thor All-in.
 This is still in early form and will be updated heavily moving forward.
 
 
