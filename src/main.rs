@@ -1,24 +1,18 @@
-
-//testing
-//for real testing
 use rust_sc2::ids::AbilityId::*;
 use rust_sc2::prelude::*;
 use std::{cmp::Ordering, collections::HashSet};
+use std::{thread, time::Duration};
 
 #[bot]
 #[derive(Default)]
 struct MarineThorRushAI {
     marine_retreat: HashSet<u64>,
-    thor_retreat: HashSet<u64>,
     proxy_worker: HashSet<u64>,
     last_loop_distributed: u32,
 }
 
 impl Player for MarineThorRushAI {
     fn on_start(&mut self) -> SC2Result<()> {
-        let proxy = self
-            .start_location
-            .towards(self.game_info.map_center, 100.0);
         if let Some(townhall) = self.units.my.townhalls.first() {
             // Setting rallypoint for command center
             townhall.smart(Target::Pos(self.start_center), false);
@@ -27,21 +21,14 @@ impl Player for MarineThorRushAI {
             townhall.train(UnitTypeId::SCV, false);
             self.subtract_resources(UnitTypeId::SCV, true);
         }
-        let scv = self.units.my.units.of_type(UnitTypeId::SCV);
 
-        for i in scv.iter().take(2) {
-                i.move_to(Target::Pos(proxy), false);
-                i.hold_position(true);
-        }
-       
         //Splitting workers to closest mineral crystals
+
         for u in &self.units.my.workers {
             if let Some(mineral) = self.units.mineral_fields.closest(u) {
                 u.gather(mineral.tag(), false);
             }
         }
-
-		
 
         Ok(())
     }
@@ -52,7 +39,7 @@ impl Player for MarineThorRushAI {
         self.build();
         self.train();
         self.execute_marine_micro();
-        self.execute_thor_micro();
+        self.execute_proxy_worker_micro();
         Ok(())
     }
 
@@ -239,7 +226,6 @@ impl MarineThorRushAI {
         let proxy = self
             .start_location
             .towards(self.game_info.map_center, 100.0);
-        let fact_proxy = self.start_location.towards(self.game_info.map_center, 84.0);
 
         if self.counter().count(UnitTypeId::Refinery) < 2
             && self.counter().ordered().count(UnitTypeId::Refinery) == 0
@@ -280,7 +266,7 @@ impl MarineThorRushAI {
         {
             if let Some(location) = self.find_placement(
                 UnitTypeId::Barracks,
-                proxy.towards_angle(43.0, 15.0),
+                proxy,
                 PlacementOptions {
                     step: 2,
                     ..Default::default()
@@ -290,83 +276,6 @@ impl MarineThorRushAI {
                     builder.build(UnitTypeId::Barracks, location, false);
                     self.subtract_resources(UnitTypeId::Barracks, false);
                     return;
-                }
-            }
-        }
-
-        if self.counter().all().count(UnitTypeId::Barracks) >= 1
-            && self.counter().all().count(UnitTypeId::EngineeringBay) < 1
-            && self.can_afford(UnitTypeId::EngineeringBay, false)
-        {
-            if let Some(location) = self.find_placement(
-                UnitTypeId::EngineeringBay,
-                main_base,
-                PlacementOptions {
-                    step: 2,
-                    addon: true,
-                    ..Default::default()
-                },
-            ) {
-                if let Some(builder) = self.get_builder(location, &mineral_tags) {
-                    builder.build(UnitTypeId::EngineeringBay, location, false);
-                    self.subtract_resources(UnitTypeId::EngineeringBay, false);
-                }
-            }
-        }
-
-        if self.counter().all().count(UnitTypeId::Barracks) >= 1
-            && self.counter().all().count(UnitTypeId::Factory) < 1
-            && self.can_afford(UnitTypeId::Factory, false)
-        {
-            if let Some(location) = self.find_placement(
-                UnitTypeId::Factory,
-                fact_proxy,
-                PlacementOptions {
-                    step: 6,
-                    addon: true,
-                    ..Default::default()
-                },
-            ) {
-                if let Some(builder) = self.get_builder(location, &mineral_tags) {
-                    builder.build(UnitTypeId::Factory, location, false);
-                    self.subtract_resources(UnitTypeId::Factory, false);
-                }
-            }
-        }
-
-        if self.counter().all().count(UnitTypeId::Factory) >= 1
-            && self.counter().all().count(UnitTypeId::Armory) >= 1
-            && self.can_afford(UnitTypeId::TechLab, false)
-        {
-            for factory in self
-                .units
-                .my
-                .structures
-                .iter()
-                .of_type(UnitTypeId::Factory)
-                .ready()
-                .idle()
-            {
-                factory.use_ability(BuildTechLabFactory, false);
-            }
-        }
-
-        if self.counter().all().count(UnitTypeId::EngineeringBay) >= 1
-            && self.counter().all().count(UnitTypeId::Armory) < 1
-            && self.can_afford(UnitTypeId::Armory, false)
-        {
-            if let Some(location) = self.find_placement(
-                UnitTypeId::Armory,
-                main_base,
-                PlacementOptions {
-                    step: 2,
-                    addon: true,
-                    ..Default::default()
-                },
-            ) {
-                if let Some(builder) = self.get_builder(location, &mineral_tags) {
-                    builder.build(UnitTypeId::Armory, location, false);
-                    self.subtract_resources(UnitTypeId::Armory, false);
                 }
             }
         }
@@ -398,16 +307,6 @@ impl MarineThorRushAI {
             {
                 barracks.train(UnitTypeId::Marine, false);
                 self.subtract_resources(UnitTypeId::Marine, true);
-            }
-        }
-        if self.can_afford(UnitTypeId::Thor, true) {
-            if let Some(factory) =
-                self.units.my.structures.iter().find(|u| {
-                    u.type_id() == UnitTypeId::Factory && u.is_ready() && u.is_almost_idle()
-                })
-            {
-                factory.train(UnitTypeId::Thor, false);
-                self.subtract_resources(UnitTypeId::Thor, true);
             }
         }
     }
@@ -519,81 +418,25 @@ impl MarineThorRushAI {
         }
     }
 
-    fn execute_thor_micro(&mut self) {
-        let thors = self.units.my.units.of_type(UnitTypeId::Thor);
-        if thors.is_empty() {
+    fn execute_proxy_worker_micro(&mut self) {
+        let proxy = self
+            .start_location
+            .towards(self.game_info.map_center, 100.0);
+        let home_location = self.start_location;
+
+        let scv = self.units.my.units.of_type(UnitTypeId::SCV);
+        if scv.is_empty() {
             return;
         }
 
-        let targets = {
-            let ground_targets = self.units.enemy.all.ground();
-            let ground_attackers = ground_targets.filter(|e| e.can_attack_ground());
-            if ground_attackers.is_empty() {
-                ground_targets.visible()
-            } else {
-                ground_attackers.visible()
-            }
-        };
+        for u in &scv {
+            let is_proxy_worker = self.proxy_worker.contains(&u.tag());
 
-        for u in &thors {
-            let is_retreating = self.thor_retreat.contains(&u.tag());
-            if is_retreating {
-                if u.health_percentage().unwrap() > 0.02 {
-                    self.thor_retreat.remove(&u.tag());
-                }
-            } else if u.health_percentage().unwrap() < 0.01 {
-                self.thor_retreat.insert(u.tag());
+            if !is_proxy_worker && self.proxy_worker.len() < 2 {
+                self.proxy_worker.insert(u.tag());
             }
-
-            match targets.closest(u) {
-                Some(closest) => {
-                    if is_retreating || u.on_cooldown() {
-                        match targets
-                            .iter()
-                            .filter(|t| {
-                                t.in_range(u, t.speed() + if is_retreating { 2.0 } else { 0.5 })
-                            })
-                            .closest(u)
-                        {
-                            Some(closest_attacker) => {
-                                let flee_position = {
-                                    let pos = u
-                                        .position()
-                                        .towards(closest_attacker.position(), -u.speed());
-                                    if self.is_pathable(pos) {
-                                        pos
-                                    } else {
-                                        *u.position()
-                                            .neighbors8()
-                                            .iter()
-                                            .filter(|p| self.is_pathable(**p))
-                                            .furthest(closest_attacker)
-                                            .unwrap_or(&self.start_location)
-                                    }
-                                };
-                                u.move_to(Target::Pos(flee_position), false);
-                            }
-                            None => {
-                                if !(is_retreating || u.in_range(closest, 0.0)) {
-                                    u.move_to(Target::Pos(closest.position()), false);
-                                }
-                            }
-                        }
-                    } else {
-                        match targets.iter().in_range_of(u, 0.0).min_by_key(|t| t.hits()) {
-                            Some(target) => u.attack(Target::Tag(target.tag()), false),
-                            None => u.move_to(Target::Pos(closest.position()), false),
-                        }
-                    }
-                }
-                None => {
-                    let pos = if is_retreating {
-                        u.position()
-                    } else {
-                        self.enemy_start
-                    };
-                    u.move_to(Target::Pos(pos), false);
-                }
+            if is_proxy_worker {
+                u.move_to(Target::Pos(proxy), false);
             }
         }
     }
